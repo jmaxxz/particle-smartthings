@@ -42,10 +42,6 @@ preferences {
     page(name:"selectParticles")
 }
 
-def getSupportedParticleTypes(){
-    return ["Generic Particle", "Turing Stat"]
-}
-
 def selectParticles(){
     def devices = getParticles()
     dynamicPage(name:"selectParticles", title: "", install: true, uninstall: true){
@@ -93,16 +89,15 @@ void updateChildDevices(){
 
 def addDevice(id){
     def result = []
-    def supportedParticles = getSupportedParticleTypes();
     httpGet(uri:"https://api.particle.io/v1/devices/${id}?access_token=${appSettings.particleToken}", {
         deviceDetails->
         httpGet(uri:"https://api.particle.io/v1/devices/${id}/devhandler?access_token=${appSettings.particleToken}", {
             response ->
-            if(supportedParticles.contains(response.data.result)){
+            try{
                 result = addChildDevice("particle",  response.data.result, "${id}", null, [label: deviceDetails.data.name, name:"Particle.${id}" ])
-            } else {
+            } catch(ex) {
                 log.debug "Adding generic particle handler for ${deviceDetails.data.name} because ${response.data.result} is not a supported device type"
-                result = addChildDevice("particle",  supportedParticles[0], "${id}", null, [label: deviceDetails.data.name, name:"Particle.${id}" ])
+                result = addChildDevice("particle",  "Generic Particle", "${id}", null, [label: deviceDetails.data.name, name:"Particle.${id}" ])
             }
         });
     });
