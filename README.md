@@ -2,7 +2,7 @@
 Integrate anything with smartthings using [particle.io](https://www.particle.io/). If you have smartthings and are a Maker, tinker, or hacker you likely have been frustrated with trying to get your embedded projects into smartthings. This repo is my solution to that frustration.
 
 ## How to use this repo
-For the sake of brevity I will assume you know how to install smartapps and device handles from github. At a minimum you will need to install the Particle Monitor smartapp [smartapps/jmaxxz/particle-monitor.src/particle-monitor.groovy](https://github.com/jmaxxz/particle-smartthings/blob/master/smartapps/jmaxxz/particle-monitor.src/particle-monitor.groovy) and the Generic Particle device handler (`path to device handler here`).
+For the sake of brevity I will assume you know how to install smartapps and device handles from github. At a minimum you will need to install the Particle Monitor smartapp [smartapps/jmaxxz/particle-monitor.src/particle-monitor.groovy](https://github.com/jmaxxz/particle-smartthings/blob/master/smartapps/jmaxxz/particle-monitor.src/particle-monitor.groovy) and the Generic Particle device handler [devicetypes/particle/generic-particle.src/generic-particle.groovy](https://github.com/jmaxxz/particle-smartthings/blob/master/devicetypes/particle/generic-particle.src/generic-particle.groovy).
 
 NOTE: I strongly recommend you also install webcore. This will let you interact with particles which are using the generic device handler.
 
