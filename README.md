@@ -1,5 +1,5 @@
 # particle-smartthings
-Integrate anything with smartthings using (particle.io)[https://www.particle.io/]. If you have smartthings and are a Maker, tinker, or hacker you likely have been frustrated with trying to get your embedded projects into smartthings. This repo is my solution to that frustration.
+Integrate anything with smartthings using [particle.io](https://www.particle.io/). If you have smartthings and are a Maker, tinker, or hacker you likely have been frustrated with trying to get your embedded projects into smartthings. This repo is my solution to that frustration.
 
 ## How to use this repo
 For the sake of brevity I will assume you know how to install smartapps and device handles from github. At a minimum you will need to install the Particle Monitor smartapp (`path to smart app here`) and the Generic Particle device handler (`path to device handler here`).
