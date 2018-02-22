@@ -28,7 +28,6 @@
 metadata {
     definition (name: "Particle Tinker", namespace: "particle", author: "jmaxxz") {
         capability "Actuator"
-        capability "Switch"
         command "invoke", ["string", "string"]
         command "handleStateUpdate", ["json_object"]
     }
@@ -39,14 +38,68 @@ metadata {
     }
 
     tiles {
-        multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true) {
-            tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-                attributeState "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#00A0DC", nextState:"turningOff"
-                attributeState "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-                attributeState "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#00A0DC", nextState:"turningOff"
-                attributeState "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-            }
+        valueTile("name", "", width: 3, height:1) {
+            state "default", label: "Digital Write"
         }
+        childDeviceTile("d0Name", "D0", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d0", "D0", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d1Name", "D1", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d1", "D1", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d2Name", "D2", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d2", "D2", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d3Name", "D3", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d3", "D3", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d4Name", "D4", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d4", "D4", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d5Name", "D5", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d5", "D5", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d6Name", "D6", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d6", "D6", height: 1, width: 1, childTileName: "switch")
+        
+        childDeviceTile("d7Name", "D7", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("d7", "D7", height: 1, width: 1, childTileName: "switch")
+    }
+}
+
+def installed() {
+    initialize()
+}
+
+def updated() {
+    initialize()
+}
+
+def initialize() {
+    addChild("D0")
+    addChild("D1")
+    addChild("D2")
+    addChild("D3")
+    addChild("D4")
+    addChild("D5")
+    addChild("D6")
+    addChild("D7")
+    addChild("A0")
+    addChild("A1")
+    addChild("A2")
+    addChild("A3")
+    addChild("A4")
+    addChild("A5")
+    addChild("A6")
+    addChild("A7")
+}
+
+def addChild(id){
+    def children = getChildDevices()
+    log.debug "Looking for ${device.deviceNetworkId}.${id}"
+    def myDevice = children.find({c->return c.deviceNetworkId == "${device.deviceNetworkId}.${id}"})
+    if(!myDevice){
+        addChildDevice("Particle Tinker Pin", "${device.deviceNetworkId}.${id}", null, [label: "${device.displayName} ${id}", completedSetup:true, isComponent: true, name:"${id}", componentName: "${id}", componentLabel: "Pin ${id}"])
     }
 }
 
@@ -65,14 +118,4 @@ def handleStateUpdate(update) {
 
 def invoke(String functionName, String value) {
     parent.invoke(this, functionName, value)
-}
-
-def on() {
-    invoke("digitalwrite", "D7 HIGH")
-    sendEvent(name: "switch", value: "on")
-}
-
-def off() {
-    invoke("digitalwrite", "D7 LOW")
-    sendEvent(name: "switch", value: "off")
 }
