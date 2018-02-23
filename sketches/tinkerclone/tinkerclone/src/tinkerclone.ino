@@ -15,6 +15,7 @@
 */
 char m_devhandler[] = "Particle Tinker";
 
+char m_current[128];
 int _analogRead(String cmd);
 int _analogWrite(String cmd);
 int _digitalRead(String cmd);
@@ -22,6 +23,8 @@ int _digitalWrite(String cmd);
 
 void setup()
 {
+  strcpy(m_current, "{}");
+
   // Smartthings integrations
   Particle.variable("devhandler", m_devhandler, STRING);
 
@@ -89,10 +92,22 @@ int _digitalWrite(String cmd){
   pinMode(pin, OUTPUT);
   if(length == 7){ //High
     digitalWrite(pin, HIGH);
+    publishDigitalWrite(cmd.substring(0, 2), 1);
   } else {
     digitalWrite(pin, LOW);
+    publishDigitalWrite(cmd.substring(0, 2), 0);
   }
   return 0;
+}
+
+void publishAnalogWrite(String pin, double value){
+  sprintf(m_current, "{\"t\":\"aw\",\"p\":\"%s\",\"v\":%d}", pin, value);
+  Particle.publish("state-update", m_current, 60, PRIVATE);
+}
+
+void publishDigitalWrite(String pin, int value){
+  sprintf(m_current, "{\"t\":\"dw\",\"p\":\"%s\",\"v\":%d}", pin, value);
+  Particle.publish("state-update", m_current, 60, PRIVATE);
 }
 
 
