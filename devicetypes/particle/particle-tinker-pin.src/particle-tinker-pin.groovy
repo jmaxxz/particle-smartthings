@@ -29,7 +29,12 @@ metadata {
     definition (name: "Particle Tinker Pin", namespace: "particle", author: "jmaxxz") {
         capability "Actuator"
         capability "Switch"
+        capability "Switch Level"
         attribute "pinName", "string"
+        attribute "miliVolts", "number"
+        command "analogRead"
+        command "writeMv"
+        
     }
 
 
@@ -42,10 +47,21 @@ metadata {
             state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#00A0DC", nextState:"off"
             state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"on"
         }
+        controlTile("analogWrite", "miliVolts", "slider", inactiveLabel: false, range:"(0..3300)") {
+            state "level", action:"writeMv"
+        }
+        valueTile("read", "device.level", decoration: "flat") {
+            state "default", label: '${currentValue}V', action: "analogRead"
+        }     
         valueTile("name", "pinName") {
             state "default", label: '${currentValue}'
         }
     }
+}
+
+def analogRead(){
+    def result = parent.invokeForChild(this, "analogread", "${device.name}")
+    sendEvent(name: "level", value: result * 0.0008)
 }
 
 def installed() {
@@ -59,15 +75,30 @@ def updated() {
 }
 
 def initialize() {
+}
 
+def writeMv(val){
+	setLevel(val/1000.0)
+}
+
+def setLevel(correctedVal){
+    def steps = (int)(correctedVal/0.0008)
+	parent.invoke("analogwrite", "${device.name} ${steps}")
+    sendEvent(name: "level", value: correctedVal)
+    sendEvent(name: "miliVolts", value: correctedVal*1000.0)
+    if(correctedVal <= 1.5) {
+        sendEvent(name: "switch", value: "off")
+    } else {
+        sendEvent(name: "switch", value: "on")
+    }
 }
 
 def on() {
-	parent.invoke("digitalwrite", "${device.name} HIGH")
+    parent.invoke("digitalwrite", "${device.name} HIGH")
     sendEvent(name: "switch", value: "on")
 }
 
 def off() {
-	parent.invoke("digitalwrite", "${device.name} LOW")
+    parent.invoke("digitalwrite", "${device.name} LOW")
     sendEvent(name: "switch", value: "off")
 }

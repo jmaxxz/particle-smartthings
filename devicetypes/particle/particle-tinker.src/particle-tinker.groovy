@@ -43,27 +43,59 @@ metadata {
         }
         childDeviceTile("d0Name", "D0", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d0", "D0", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d1Name", "D1", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d1", "D1", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d2Name", "D2", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d2", "D2", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d3Name", "D3", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d3", "D3", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d4Name", "D4", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d4", "D4", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d5Name", "D5", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d5", "D5", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d6Name", "D6", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d6", "D6", height: 1, width: 1, childTileName: "switch")
-        
+
         childDeviceTile("d7Name", "D7", height: 1, width: 2, childTileName: "name")
         childDeviceTile("d7", "D7", height: 1, width: 1, childTileName: "switch")
+        
+        
+        valueTile("analogwrite_section", "", width: 3, height:1) {
+            state "default", label: "Analog Write"
+        }         
+        childDeviceTile("a3Name", "A3", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a3", "A3", height: 1, width: 1, childTileName: "analogWrite")
+        
+        childDeviceTile("a6Name", "A6", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a6", "A6", height: 1, width: 1, childTileName: "analogWrite")
+
+
+        valueTile("analogread_section", "", width: 3, height:1) {
+            state "default", label: "Analog Read"
+        }     
+        childDeviceTile("a0Name", "A0", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a0", "A0", height: 1, width: 1, childTileName: "read")
+
+        childDeviceTile("a1Name", "A1", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a1", "A1", height: 1, width: 1, childTileName: "read")
+
+        childDeviceTile("a2Name", "A2", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a2", "A2", height: 1, width: 1, childTileName: "read")
+
+        childDeviceTile("a4Name", "A4", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a4", "A4", height: 1, width: 1, childTileName: "read")
+
+        childDeviceTile("a5Name", "A5", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a5", "A5", height: 1, width: 1, childTileName: "read")
+
+        childDeviceTile("a7Name", "A7", height: 1, width: 2, childTileName: "name")
+        childDeviceTile("a7", "A7", height: 1, width: 1, childTileName: "read")
     }
 }
 
@@ -117,5 +149,12 @@ def handleStateUpdate(update) {
 }
 
 def invoke(String functionName, String value) {
-    parent.invoke(this, functionName, value)
+    def result =  parent.invoke(this, functionName, value)
+    log.debug "invoked ${functionName} got ${result}"
+    return result
+}
+
+
+def invokeForChild(childDevice, String func = "", String msg= "") {
+    return invoke(func, msg);
 }
