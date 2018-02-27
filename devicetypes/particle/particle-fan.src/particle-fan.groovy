@@ -1,5 +1,5 @@
 /**
-*  Particle Fan Controller
+*  Particle Fan
 *
 *  Copyright 2018 Jmaxxz
 *
@@ -14,15 +14,14 @@
 *
 */
 metadata {
-    definition (name: "Particle Fan Controller", namespace: "particle", author: "Jmaxxz") {
+    definition (name: "Particle Fan", namespace: "particle", author: "Jmaxxz") {
         capability "Actuator"
         capability "Switch"
         capability "Fan Speed"
-        capability "Refresh"
-        command "invoke", ["string", "string"]
         command "setFanLow"
         command "setFanMedium"
         command "setFanHigh"
+        command "toggleLight"
         attribute "fanAddress", "string"
     }
 
@@ -30,9 +29,7 @@ metadata {
     simulator {
         // TODO: define status and reply messages here
     }
-    preferences {
-        input name: "children", type: "text", title: "Child addresses", description: "Example: 10000,01000", required: false
-    }
+
     tiles {
         multiAttributeTile(name:"fanSpeed", type:"generic", width:6, height:4, canChangeIcon: true) {
             tileAttribute("device.fanSpeed", key: "PRIMARY_CONTROL") {
@@ -46,19 +43,20 @@ metadata {
             }
         }
         standardTile("lowSpeed", "device.fanSpeed", decoration: "flat", width: 2, height: 2) {
-            state "default", label:'LOW', action: "setFanLow", nextState: "1", icon:"st.Lighting.light24"
+        	state "default", label:'LOW', action: "setFanLow", nextState: "1", icon:"st.Lighting.light24"
             state "1", label:'LOW', action: "switch.off", icon:"st.Lighting.light24", nextState: "0", backgroundColor: "#00A0DC"
         }
         standardTile("medSpeed", "device.fanSpeed", decoration: "flat", width: 2, height: 2) {
-            state "default", label:'MED', action: "setFanMedium", nextState: "2", icon:"st.Lighting.light24"
+        	state "default", label:'MED', action: "setFanMedium", nextState: "2", icon:"st.Lighting.light24"
             state "2", label: 'MED', action: "switch.off", icon:"st.Lighting.light24", nextState: "0", backgroundColor: "#00A0DC"
         }
         standardTile("highSpeed", "device.fanSpeed", decoration: "flat", width: 2, height: 2) {
-            state "default", label:'HIGH', action: "setFanHigh", nextState: "3", icon:"st.Lighting.light24"
+        	state "default", label:'HIGH', action: "setFanHigh", nextState: "3", icon:"st.Lighting.light24"
             state "3", label: 'HIGH', action: "switch.off", icon:"st.Lighting.light24", nextState: "0", backgroundColor: "#00A0DC"
         }
-        standardTile("refresh", "device.refresh", inactiveLabel: false, width:2, height:2, decoration: "flat") {
-            state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
+        
+        standardTile("toggleLight", "device.fanAddress", decoration: "flat", width: 2, height: 2) {
+        	state "default", label:'Light', action: "toggleLight", icon:"st.Lighting.light11"
         }
     }
 }
@@ -72,7 +70,7 @@ def updated() {
 }
 
 def initialize() {
-    refresh()
+	refresh()
 }
 
 // parse events into attributes
@@ -99,52 +97,24 @@ def setFanHigh(){
 def setFanSpeed(Number speed) {
     log.debug "Executing 'setFanSpeed'"
     if(speed < 1){
-        parent.invoke(this, "cmd", "o")
+        parent.invokeFromChild(this, "cmd", "o${device.name}")
         sendEvent(name: "fanSpeed", value: 0)
         sendEvent(name: "switch", value: "off")
     } else if(speed <2){
-        parent.invoke(this, "cmd", "l")
+        parent.invokeFromChild(this, "cmd", "l${device.name}")
         sendEvent(name: "fanSpeed", value: 1)
         sendEvent(name: "switch", value: "on")
     } else if(speed < 3){
-        parent.invoke(this, "cmd", "m")
+        parent.invokeFromChild(this, "cmd", "m${device.name}")
         sendEvent(name: "fanSpeed", value: 2)
         sendEvent(name: "switch", value: "on")
     } else {
-        parent.invoke(this, "cmd", "h")
+        parent.invokeFromChild(this, "cmd", "h${device.name}")
         sendEvent(name: "fanSpeed", value: 3)
         sendEvent(name: "switch", value: "on")
     }
 }
 
-def invoke(String functionName, String value) {
-    parent.invoke(this, functionName, value)
-}
-
-def invokeFromChild(device, String functionName = "", String value="") {
-    parent.invoke(this, functionName, value)
-}
-
-def syncChildren(){
-    def prefChildren = children.split(',')
-    def actualChildren = getChildDevices().collectEntries({i->[(i.name): i]})
-    log.debug "Pref: ${prefChildren} Actual: ${actualChildren}"
-    prefChildren.each({i->
-    	if(actualChildren[i] == null){
-        	addChildDevice("Particle Fan", "${device.deviceNetworkId}.${i}", null, [label: "${device.displayName} ${i}", completedSetup:true, isComponent: false, name:"${i}"])
-        } else{
-        	actualChildren.remove(i)
-        }
-    })
-    
-    actualChildren.each({key, value ->
-    	deleteChildDevice(value.deviceNetworkId);
-    })
-}
-
-def refresh() {
-    syncChildren()
-    def addr = parent.getVariable(this, "fanAddress")
-    sendEvent(name: "fanAddress", value: addr)
-
+def toggleLight(){
+	parent.invokeFromChild(this, "cmd", "b${device.name}")
 }
