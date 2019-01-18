@@ -39,14 +39,25 @@ definition(
 }
 
 preferences {
+    page(name: "authTokenEntry")
     page(name:"selectParticles")
+}
+
+def authTokenEntry(){
+
+	dynamicPage(name: "authTokenEntry", title: "Particle Api token", nextPage: "selectParticles", install: false, uninstall: true){
+    	section {
+            paragraph "In order to communicate with the particle cloud you will need an api token. It is recommend you use a token which will never expire."
+            input "particleToken", type:"password", required: true, capitalization: "none", defaultValue: appSettings.particleToken, title: "Particle Api Token?"
+        }
+    }
 }
 
 def selectParticles(){
     def devices = getParticles()
     dynamicPage(name:"selectParticles", title: "", install: true, uninstall: true){
         section("Select the particle devices you would like to use"){
-            input(name: "particleDevices", type: "enum", title: "Select Devices", required: true, multiple: true, options: devices)
+            input(name: "particleDevices", type: "enum", title: "Select Devices", required: false, multiple: true, options: devices)
         }
     }
 }
@@ -54,7 +65,7 @@ def selectParticles(){
 
 def getParticles(){
     def results = [:]
-    httpGet(uri:"https://api.particle.io/v1/devices?access_token=${appSettings.particleToken}", {
+    httpGet(uri:"https://api.particle.io/v1/devices?access_token=${settings.particleToken}", {
         response -> response.data.each { device ->
             results.put(device.id, device.name)
         }
@@ -89,9 +100,9 @@ void updateChildDevices(){
 
 def addDevice(id){
     def result = []
-    httpGet(uri:"https://api.particle.io/v1/devices/${id}?access_token=${appSettings.particleToken}", {
+    httpGet(uri:"https://api.particle.io/v1/devices/${id}?access_token=${settings.particleToken}", {
         deviceDetails->
-        httpGet(uri:"https://api.particle.io/v1/devices/${id}/devhandler?access_token=${appSettings.particleToken}", {
+        httpGet(uri:"https://api.particle.io/v1/devices/${id}/devhandler?access_token=${settings.particleToken}", {
             response ->
             try{
                 result = addChildDevice("particle",  response.data.result, "${id}", null, [label: deviceDetails.data.name, name:"Particle.${id}" ])
@@ -108,7 +119,7 @@ def addDevice(id){
 // Check to see if we need to make the webhook or if it is there already
 void checkWebhook() {
     def devicesMissingHooks = particleDevices.collect()
-    httpGet(uri:"https://api.particle.io/v1/webhooks?access_token=${appSettings.particleToken}", {
+    httpGet(uri:"https://api.particle.io/v1/webhooks?access_token=${settings.particleToken}", {
         response ->
         response.data.each {
             hook ->
@@ -137,7 +148,7 @@ mappings {
 }
 
 void deleteWebhook(hookid) {
-    httpDelete(uri: "https://api.particle.io/v1/integrations/${hookid}?access_token=${appSettings.particleToken}") {response -> log.debug "Delete hook response ${response.data}"}
+    httpDelete(uri: "https://api.particle.io/v1/integrations/${hookid}?access_token=${settings.particleToken}") {response -> log.debug "Delete hook response ${response.data}"}
 }
 
 // Create a new particle webhook for this app to use
@@ -146,7 +157,7 @@ void createWebhook(device) {
         // the createAccessToken() method will store the access token in state.accessToken
         createAccessToken()
     }
-    httpPostJson(uri: "https://api.particle.io/v1/integrations?access_token=${appSettings.particleToken}",
+    httpPostJson(uri: "https://api.particle.io/v1/integrations?access_token=${settings.particleToken}",
                  body: new groovy.json.JsonBuilder([
                      integration_type:"Webhook",
                      event: "state-update", // The name of the event raised by the particle device
@@ -160,18 +171,23 @@ void createWebhook(device) {
 }
 
 def invoke(childDevice, String func = "", String msg= "") {
+	def result= [];
     log.debug "Calling  ${childDevice}"
-    httpPostJson(uri: "https://api.particle.io/v1/devices/${childDevice.device.deviceNetworkId}/${func}?access_token=${appSettings.particleToken}",
+    httpPostJson(uri: "https://api.particle.io/v1/devices/${childDevice.device.deviceNetworkId}/${func}?access_token=${settings.particleToken}",
                  body: [
                      arg:msg,
                  ]
-                ) {response -> "Called ${func} for ${childDevice.device.name} response ${log.debug response.data}"}
+                ) {response -> 
+                result = response.data.return_value;
+                log.debug "Called ${func} for ${childDevice.device.name} response ${result}"   
+                }
+    return result;
 }
 
 def getVariable(childDevice, String variable = "") {
     def result = [];
     log.debug "Calling  ${childDevice}"
-    httpGet(uri:"https://api.particle.io/v1/devices/${childDevice.device.deviceNetworkId}/${variable}?access_token=${appSettings.particleToken}", {
+    httpGet(uri:"https://api.particle.io/v1/devices/${childDevice.device.deviceNetworkId}/${variable}?access_token=${settings.particleToken}", {
         response ->
         result = response.data.result
     })
